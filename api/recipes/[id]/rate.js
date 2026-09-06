@@ -19,4 +19,10 @@ export default async function handler(req, res) {
   if (fetchError) return res.status(500).json({ error: fetchError.message });
   const total = ratings.reduce((sum, r) => sum + r.rating, 0);
   return res.status(200).json({ total, count: ratings.length });
+
+  const user = await verifyUser(req);
+  if (!user) return res.status(401).json({ error: 'Sign in required' });
+  if (user.is_anonymous) return res.status(403).json({ error: 'Create an account to give a HotShot Score' });
+
+  const value = Number((req.body || {}).rating);
 }

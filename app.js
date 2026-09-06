@@ -207,6 +207,15 @@ function renderCreate() {
 }
 
 function renderExplore() {
+  if (isGuest()) {
+    view.innerHTML = `
+      <p class="eyebrow">Community recipes</p>
+      <h1 class="page-title">Sign in to access<br>online recipes.</h1>
+      <p class="page-subtitle">Browsing everyone else's shared drinks needs a real account. The recipes you've already made as a guest are still saved.</p>
+      <button class="primary-button" id="exit-guest" type="button">Create an account</button>
+      <button class="text-link" id="guest-sign-in-instead" type="button" style="margin-top:12px">Sign in instead</button>`;
+    return;
+  }
   const categories = ['All', 'Classic', 'Fruity', 'Strong', 'Sweet', 'Sour'];
   const publicDrinks = state.drinks.filter(drink => drink.shared);
   const drinks = state.filter === 'All' ? publicDrinks : publicDrinks.filter(drink => drink.category === state.filter);
@@ -278,6 +287,7 @@ function renderAccount() {
         <button class="setting" data-nav="bar"><span><strong>Manage my bar</strong><span>Ingredients and quantity</span></span><em>›</em></button>
         <button class="setting" id="reset-local"><span><strong>Reset device data</strong><span>Clear favourites, log, and bar on this device</span></span><em>›</em></button>
         <button class="setting" id="exit-guest"><span><strong>Create an account</strong><span>Keep your recipes, and unlock rating</span></span><em>›</em></button>
+        <button class="setting" id="guest-sign-in-instead"><span><strong>Sign in instead</strong><span>Switch to an existing account</span></span><em>›</em></button>
       </section>`;
     return;
   }
@@ -398,6 +408,7 @@ document.addEventListener('click', event => {
     return continueAsGuest();
   }
   if (event.target.closest('#exit-guest')) { state.upgrading = true; state.authMode = 'signup'; state.authError = ''; return render(); }
+  if (event.target.closest('#guest-sign-in-instead')) { state.authMode = 'signin'; state.authError = ''; return supabase.auth.signOut(); }
   if (event.target.closest('#cancel-upgrade')) { state.upgrading = false; return render(); }
   if (event.target.closest('#auth-toggle')) { state.authMode = state.authMode === 'signup' ? 'signin' : 'signup'; state.authError = ''; return renderAuth(); }
   const modalAction = event.target.closest('[data-modal-action]');
@@ -420,19 +431,31 @@ document.addEventListener('submit', event => {
     state.authError = ''; state.authModalOpen = false;
 
     if (state.authMode === 'signup') {
-      const action = isGuest()
-        ? supabase.auth.updateUser({ email, password, data: { display_name: displayName } })
-        : supabase.auth.signUp({ email, password, options: { data: { display_name: displayName } } });
-      action.then(async ({ error, data }) => {
+      if (isGuest()) {
+        const anonToken = state.session.access_token; // capture before anything can change it
+        supabase.auth.signUp({ email, password, options: { data: { display_name: displayName } } }).then(async ({ error, data }) => {
+          if (error) { state.authError = error.message; return renderAuth(); }
+          try {
+            await fetch(`${API_BASE}/api/account/claim`, {
+              method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${anonToken}` },
+              body: JSON.stringify({ newUserId: data.user.id })
+            });
+          } catch { /* best-effort -- the account still gets created either way */ }
+          if (data.session) {
+            // Confirmation isn't required (or this project auto-confirms) -- signUp() already
+            // swapped in the new session, so onAuthStateChange will pick it up and bootstrap.
+            state.upgrading = false; showToast('Account created — your recipes came with you.');
+          } else {
+            await supabase.auth.signOut();
+            state.upgrading = false; state.authMode = 'signin'; state.authError = '';
+            showToast('Check your email to confirm your account, then sign in.'); render();
+          }
+        });
+        return;
+      }
+      supabase.auth.signUp({ email, password, options: { data: { display_name: displayName } } }).then(({ error, data }) => {
         if (error) { state.authError = error.message; return renderAuth(); }
-        if (data?.user && !data.user.is_anonymous) {
-          state.session = { ...state.session, user: data.user };
-          state.upgrading = false;
-          await loadProfile();
-          render(); showToast('Account created — your recipes came with you.');
-        } else {
-          showToast('Check your email to confirm your account.'); renderAuth();
-        }
+        if (!data.session) showToast('Check your email to confirm your account.');
       });
       return;
     }

@@ -154,7 +154,7 @@ input[type="range"] { width: 100%; padding: 0; accent-color: var(--acid); }
 .form-card .primary-button { width: 100%; margin-top: 4px; }
 .auth-guest-button { width: 100%; margin-top: 10px; }
 .modal-backdrop { position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; padding: 20px; background: rgba(0,0,0,.55); backdrop-filter: blur(6px); }
-.modal-card { width: 100%; max-width: 340px; padding: 22px; border: 1px solid var(--line); border-radius: 20px; background: var(--glass); box-shadow: var(--glass-shadow); backdrop-filter: blur(24px) saturate(1.1); }
+.modal-card { width: 100%; max-width: 340px; padding: 22px; border: 1px solid var(--line); border-radius: 20px; background: var(--glass-strong); box-shadow: var(--glass-shadow); backdrop-filter: blur(24px) saturate(1.1); }
 .modal-card h2 { margin: 0 0 8px; font-size: 17px; }
 .modal-card p { margin: 0 0 16px; color: var(--muted); font-size: 12px; line-height: 1.5; }
 .modal-card .primary-button, .modal-card .secondary-button { width: 100%; margin-bottom: 8px; }

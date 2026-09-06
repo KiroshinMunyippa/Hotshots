@@ -98,7 +98,7 @@ body[data-theme="light"] .ambient { opacity: .2; }
 .drink-card small { position: relative; z-index: 1; color: var(--muted); font: 10px "DM Mono", monospace; }
 .drink-card .drink-strength { display: block; margin-top: 8px; color: var(--acid); font-size: 9px; }
 .drink-card-footer { position: absolute; bottom: 15px; left: 17px; right: 17px; display: flex; justify-content: space-between; align-items: center; }
-.community-rating { color: var(--acid); font: 500 10px "DM Mono", monospace; }
+.community-rating { display: inline-flex; align-items: center; gap: 4px; color: var(--acid); font: 500 10px "DM Mono", monospace; }
 .like { position: relative; z-index: 2; width: 29px; height: 29px; border-radius: 50%; background: rgba(0,0,0,.17); color: var(--ink); font-size: 17px; }
 .like.is-favourite { color: var(--orange); }
 
@@ -133,13 +133,14 @@ body[data-theme="light"] .ambient { opacity: .2; }
 .discover-card h3 { position: relative; z-index: 1; width: 77%; margin: 39px 0 5px; font-size: 16px; letter-spacing: -.5px; line-height: 1; }
 .discover-card p { position: relative; z-index: 1; margin: 0; color: var(--muted); font-size: 10px; }
 .strength-badge { position: relative; z-index: 1; display: inline-flex; margin-top: 8px; padding: 4px 6px; border: 1px solid rgba(215,250,89,.2); border-radius: 6px; color: var(--acid); background: rgba(215,250,89,.08); font: 500 8px "DM Mono", monospace; text-transform: uppercase; }
-.rating-summary { position: relative; z-index: 1; display: block; margin-top: 13px; color: var(--acid); font: 500 9px "DM Mono", monospace; }
+.rating-summary { position: relative; z-index: 1; display: flex; align-items: center; gap: 4px; margin-top: 13px; color: var(--acid); font: 500 9px "DM Mono", monospace; }
 .discover-card .card-action { position: absolute; z-index: 2; bottom: 14px; left: 15px; color: var(--acid); background: none; padding: 0; font: 500 10px "DM Mono", monospace; text-transform: uppercase; }
 .discover-card .card-action.remove-saved { right: 15px; left: auto; color: #e0645a; }
 .recipe-card .card-action { bottom: 17px; }
 .rating-control { position: absolute; z-index: 3; right: 12px; bottom: 10px; display: flex; gap: 1px; padding: 3px 5px; border-radius: 10px; background: rgba(0,0,0,.18); }
-.rating-star { padding: 2px; background: transparent; color: #687060; font-size: 12px; line-height: 1; }
-.rating-star.selected { color: var(--acid); }
+.rating-star { padding: 2px; background: transparent; font-size: 12px; line-height: 1; opacity: .35; filter: grayscale(70%); transition: opacity .15s, filter .15s; }
+.rating-star.selected { opacity: 1; filter: none; }
+.guest-rating-note { margin: 0; color: var(--muted); font: 500 9px "DM Mono", monospace; text-transform: uppercase; letter-spacing: .3px; }
 
 .form-card { padding: 18px; border: 1px solid var(--line); border-radius: 20px; background: var(--glass); box-shadow: var(--glass-shadow); backdrop-filter: blur(24px) saturate(1.1); }
 .field { display: grid; gap: 8px; margin-bottom: 17px; }
@@ -152,6 +153,12 @@ input[type="range"] { width: 100%; padding: 0; accent-color: var(--acid); }
 .range-value { min-width: 40px; color: var(--acid); font: 500 14px "DM Mono", monospace; text-align: right; }
 .form-card .primary-button { width: 100%; margin-top: 4px; }
 .auth-guest-button { width: 100%; margin-top: 10px; }
+.modal-backdrop { position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; padding: 20px; background: rgba(0,0,0,.55); backdrop-filter: blur(6px); }
+.modal-card { width: 100%; max-width: 340px; padding: 22px; border: 1px solid var(--line); border-radius: 20px; background: var(--glass); box-shadow: var(--glass-shadow); backdrop-filter: blur(24px) saturate(1.1); }
+.modal-card h2 { margin: 0 0 8px; font-size: 17px; }
+.modal-card p { margin: 0 0 16px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+.modal-card .primary-button, .modal-card .secondary-button { width: 100%; margin-bottom: 8px; }
+.modal-card .text-link { display: block; width: 100%; text-align: center; }
 .ingredient-picks { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
 .ingredient-choice { display: flex; align-items: center; gap: 8px; min-height: 43px; padding: 8px 9px; border: 1px solid var(--line); border-radius: 10px; color: var(--muted); font-size: 11px; }
 .ingredient-choice input { appearance: none; display: grid; place-content: center; width: 16px; height: 16px; margin: 0; border: 1px solid var(--faint); border-radius: 5px; background: transparent; }
@@ -184,8 +191,10 @@ input[type="range"] { width: 100%; padding: 0; accent-color: var(--acid); }
 .recipe-strength { display: flex; justify-content: space-between; gap: 12px; margin: 0; padding: 10px 0; border-top: 1px solid var(--line); color: var(--acid); font: 500 10px "DM Mono", monospace; }
 .recipe-strength span { color: var(--muted); text-transform: uppercase; }
 .recipe-rating { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); color: var(--acid); font: 500 10px "DM Mono", monospace; }
+.recipe-rating > span { display: inline-flex; align-items: center; gap: 4px; }
 .recipe-rating .rating-control { position: static; padding: 0; background: none; }
 .recipe-rating .rating-star { font-size: 15px; }
+.hotshot-icon { flex: none; }
 .recipe-detail-section { margin-top: 24px; }
 .recipe-detail-section h2 { margin: 0 0 10px; font-size: 14px; }
 .recipe-ingredients, .recipe-method { display: grid; gap: 7px; margin: 0; padding: 0; list-style: none; }

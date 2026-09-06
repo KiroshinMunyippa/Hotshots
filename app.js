@@ -307,7 +307,13 @@ function positionNavGlide(instant = false) {
   glide.style.transform = `translateX(${active.offsetLeft}px)`;
   if (instant) requestAnimationFrame(() => { glide.style.transition = ''; });
 }
+function updateTopbarAvatar() {
+  const el = document.getElementById('topbar-avatar');
+  if (!el) return;
+  el.textContent = !state.session ? '' : isGuest() ? 'GU' : initials();
+}
 function render() {
+  updateTopbarAvatar();
   const dock = $('.bottom-dock');
   if (!state.session || state.upgrading) { if (dock) dock.style.display = 'none'; return renderAuth(); }
   let becameVisible = false;
@@ -343,7 +349,7 @@ async function rateDrink(id, value) {
 }
 async function continueAsGuest() {
   try { const { error } = await supabase.auth.signInAnonymously(); if (error) throw error; }
-  catch (err) { showToast(err.message); }
+  catch (err) { showToast(err.message); state.authModalOpen = false; renderAuth(); }
 }
 
 document.addEventListener('click', event => {
@@ -386,16 +392,20 @@ document.addEventListener('click', event => {
     return;
   }
   if (event.target.closest('#sign-out')) return supabase.auth.signOut();
-  if (event.target.closest('#continue-guest')) return continueAsGuest();
+  if (event.target.closest('#continue-guest')) {
+    const btn = event.target.closest('#continue-guest');
+    btn.disabled = true; btn.textContent = 'Signing in…';
+    return continueAsGuest();
+  }
   if (event.target.closest('#exit-guest')) { state.upgrading = true; state.authMode = 'signup'; state.authError = ''; return render(); }
   if (event.target.closest('#cancel-upgrade')) { state.upgrading = false; return render(); }
   if (event.target.closest('#auth-toggle')) { state.authMode = state.authMode === 'signup' ? 'signin' : 'signup'; state.authError = ''; return renderAuth(); }
   const modalAction = event.target.closest('[data-modal-action]');
   if (modalAction) {
     const action = modalAction.dataset.modalAction;
+    if (action === 'guest') { modalAction.disabled = true; modalAction.textContent = 'Signing in…'; return continueAsGuest(); }
     state.authModalOpen = false;
     if (action === 'create') { state.authMode = 'signup'; state.authError = ''; return renderAuth(); }
-    if (action === 'guest') { continueAsGuest(); return; }
     return renderAuth();
   }
 });
